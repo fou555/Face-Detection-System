@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตรวจจับใบหน้า</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=TH+Sarabun+New:wght@400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            margin: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        #container {
+            display: flex;
+            gap: 20px; /* กำหนดระยะห่างระหว่างองค์ประกอบ */
+        }
+
+        #videoContainer {
+            flex: 2; /* เพิ่มสัดส่วนให้กับ videoContainer */
+            position: relative;
+        }
+
+        #alertText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333; 
+            font-size: 18px;
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        #faceListContainer {
+            flex: 1; /* เพิ่มสัดส่วนให้กับ faceListContainer */
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex; /* ใช้ flex เพื่อจัดการการจัดเรียง */
+            flex-direction: column; /* เรียงลูกในแนวตั้ง */
+        }
+
+        #faceListContainer > div {
+            flex: 1; /* ทำให้ div มีความยืดหยุ่นเพื่อใช้พื้นที่ทั้งหมด */
+            overflow-y: auto; /* ทำให้มีการเลื่อน */
+        }
+        
+        #faceList {
+            width: 100%; /* ทำให้ตารางเต็มความกว้าง */
+            border-collapse: collapse;
+        }
+
+        #chatContainer {
+            flex: 1; /* เพิ่มสัดส่วนให้กับ chatContainer */
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden; /* ซ่อน overflow */
+            display: flex; /* เปลี่ยนเป็น flex */
+            flex-direction: column; /* ตั้งค่าให้เป็นแนวตั้ง */
+        }
+
+        #chatMessages {
+            flex: 1; /* ให้พื้นที่สำหรับ chatMessages */
+            overflow-y: auto; /* ทำให้มีการเลื่อน */
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #f8f8f8;
+            padding: 10px;
+            display: flex;
+            flex-direction: column-reverse; /* เรียงข้อความจากล่างขึ้นบน */
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message.user {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+
+        .message.gemini {
+            background-color: #e6e6e6;
+            color: #333;
+            text-align: left;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* เพิ่มขนาดของช่องบันทึกการตรวจจับ */
+        #detectionLog {
+            width: 100%; /* ให้เต็มความกว้าง */
+            height: 300px; /* เพิ่มความสูง */
+            overflow-y: auto; /* ทำให้มีการเลื่อน */
+        }
+
+        /* ปรับขนาดตาราง */
+        table {
+            width: 100%; /* ทำให้ตารางเต็มความกว้าง */
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ccc;
+
+        }
+
+        th {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div id="container" class="flex">
+        <div id="videoContainer">
+            <h1>Face Detection System</h1>
+            <img id="video" src="{{ url_for('video_feed') }}" style="width: 100%; height: auto;" />
+            <div id="alertText"></div>
+        </div>
+
+        <div id="faceListContainer">
+            <h2>รายชื่อใบหน้าที่ตรวจพบ</h2>
+            <div style="flex: 1; overflow-y: auto;"> <!-- เปลี่ยนให้ div ใช้พื้นที่เต็ม -->
+                <table id="faceList">
+                    <thead>
+                        <tr>
+                            <th>ชื่อใบหน้า</th>
+                            <th>เวลาที่ตรวจพบ</th>
+                            <th>ลิ้งค์ไปยังใบหน้า</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for face in faces %}
+                        <tr>
+                            <td>{{ face.name }}</td>
+                            <td>{{ face.timestamp }}</td>
+                            <td><a href="{{ url_for('static', filename=face.image_path) }}" target="_blank">ดูใบหน้า</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="detectionLog">
+                <h3>บันทึกการตรวจจับ</h3>
+                <div id="logMessages"></div>
+            </div>
+        </div>
+
+        <div id="chatContainer">
+            <h2>แชทบอท</h2>
+            <div id="chatMessages"></div>
+            <input type="text" id="userInput" placeholder="พิมพ์ข้อความที่นี่..." />
+            <button id="sendButton">ส่ง</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        const socket = io();
+    
+        const alertText = document.getElementById('alertText');
+    
+        // ฟังก์ชันเพิ่มแถวใหม่ในตารางบันทึกใบหน้าที่ตรวจพบ
+        function appendFaceToTable(name, timestamp, imagePath) {
+            const tableBody = document.querySelector('#faceList tbody');
+            const newRow = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            const timestampCell = document.createElement('td');
+            const imageCell = document.createElement('td');
+            
+            nameCell.textContent = name;
+            timestampCell.textContent = timestamp;
+            imageCell.innerHTML = `<a href="${imagePath}" target="_blank">ดูใบหน้า</a>`;
+            
+            newRow.appendChild(nameCell);
+            newRow.appendChild(timestampCell);
+            newRow.appendChild(imageCell);
+            
+            tableBody.appendChild(newRow);
+        }
+    
+        // ฟังก์ชันสำหรับเพิ่มข้อความบันทึกการตรวจจับในส่วนบันทึกผล
+        function appendLogMessage(message) {
+            const logDiv = document.getElementById('logMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.innerHTML = message; // แสดง HTML
+            msgDiv.className = 'message'; // เพิ่มคลาส
+            logDiv.appendChild(msgDiv);
+            logDiv.scrollTop = logDiv.scrollHeight; // เลื่อนลงเพื่อให้เห็นข้อความล่าสุด
+        }
+    
+        socket.on('alert', function(data) {
+            const timestamp = new Date().toLocaleString('th-TH');
+            
+            // กำหนดข้อความการแจ้งเตือนและบันทึก
+            let alertMessage = '';
+            let logMessage = '';
+    
+            // ตรวจสอบว่าใบหน้าที่ตรวจพบตรงกับใคร
+            if (data.name === 'Worramate') {
+                alertMessage = `ตรวจจับพบ Worramate เวลา: ${timestamp}`;
+                logMessage = `ตรวจจับพบ: Worramate เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
+            } else if (data.name === 'Nakarin') {
+                alertMessage = `ตรวจจับพบ Nakarin เวลา: ${timestamp}`;
+                logMessage = `ตรวจจับพบ: Nakarin เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
+            } else if (data.name === 'Apisada') {
+                alertMessage = `ตรวจจับพบ Apisada เวลา: ${timestamp}`;
+                logMessage = `ตรวจจับพบ: Apisada เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
+            } else {
+                alertMessage = `ตรวจจับพบบุคคลอื่นที่ไม่รู้จัก เวลา: ${timestamp}`;
+                logMessage = `ตรวจจับพบ: บุคคลอื่นที่ไม่รู้จัก เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
+            }
+    
+            // เพิ่มข้อความบันทึกในส่วนบันทึกผล
+            appendLogMessage(logMessage);
+            
+            // แสดงข้อความการตรวจจับบนวิดีโอ
+            alertText.innerText = alertMessage;
+            alertText.style.display = 'block';
+            setTimeout(() => {
+                alertText.style.display = 'none';
+            }, 3000);
+    
+            // เพิ่มข้อมูลใบหน้าที่ตรวจพบลงในตาราง
+            appendFaceToTable(data.name, timestamp, data.image_path);
+        });
+    
+        // ฟังก์ชันส่งข้อความจากผู้ใช้ไปยังแชทบอท
+        document.getElementById('sendButton').onclick = function() {
+            const userInput = document.getElementById('userInput').value;
+            if (userInput) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message user';
+                msgDiv.innerText = userInput;
+                document.getElementById('chatMessages').appendChild(msgDiv);
+                document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight; // เลื่อนลงเพื่อให้เห็นข้อความล่าสุด
+                document.getElementById('userInput').value = ''; // เคลียร์ input
+            }
+        };
+    </script>    
+</body>
+</html>
