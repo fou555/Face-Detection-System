@@ -21,11 +21,11 @@
 
         #container {
             display: flex;
-            gap: 20px; /* กำหนดระยะห่างระหว่างองค์ประกอบ */
+            gap: 20px; 
         }
 
         #videoContainer {
-            flex: 2; /* เพิ่มสัดส่วนให้กับ videoContainer */
+            flex: 2; 
             position: relative;
         }
 
@@ -45,45 +45,45 @@
         }
 
         #faceListContainer {
-            flex: 1; /* เพิ่มสัดส่วนให้กับ faceListContainer */
+            flex: 1; 
             background: white;
             border-radius: 10px;
             padding: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex; /* ใช้ flex เพื่อจัดการการจัดเรียง */
-            flex-direction: column; /* เรียงลูกในแนวตั้ง */
+            display: flex; 
+            flex-direction: column; 
         }
 
         #faceListContainer > div {
-            flex: 1; /* ทำให้ div มีความยืดหยุ่นเพื่อใช้พื้นที่ทั้งหมด */
-            overflow-y: auto; /* ทำให้มีการเลื่อน */
+            flex: 1;
+            overflow-y: auto; 
         }
         
         #faceList {
-            width: 100%; /* ทำให้ตารางเต็มความกว้าง */
+            width: 100%; 
             border-collapse: collapse;
         }
 
         #chatContainer {
-            flex: 1; /* เพิ่มสัดส่วนให้กับ chatContainer */
+            flex: 1;
             background: white;
             border-radius: 10px;
             padding: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden; /* ซ่อน overflow */
-            display: flex; /* เปลี่ยนเป็น flex */
-            flex-direction: column; /* ตั้งค่าให้เป็นแนวตั้ง */
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
         }
 
         #chatMessages {
-            flex: 1; /* ให้พื้นที่สำหรับ chatMessages */
-            overflow-y: auto; /* ทำให้มีการเลื่อน */
+            flex: 1; 
+            overflow-y: auto; 
             margin-bottom: 10px;
             border-radius: 5px;
             background: #f8f8f8;
             padding: 10px;
             display: flex;
-            flex-direction: column-reverse; /* เรียงข้อความจากล่างขึ้นบน */
+            flex-direction: column-reverse;
         }
 
         .message {
@@ -110,16 +110,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* เพิ่มขนาดของช่องบันทึกการตรวจจับ */
+        
         #detectionLog {
-            width: 100%; /* ให้เต็มความกว้าง */
-            height: 300px; /* เพิ่มความสูง */
-            overflow-y: auto; /* ทำให้มีการเลื่อน */
+            width: 100%; 
+            height: 300px; 
+            overflow-y: auto;
         }
 
-        /* ปรับขนาดตาราง */
+        
         table {
-            width: 100%; /* ทำให้ตารางเต็มความกว้าง */
+            width: 100%; 
             border-collapse: collapse;
         }
 
@@ -145,7 +145,7 @@
 
         <div id="faceListContainer">
             <h2>รายชื่อใบหน้าที่ตรวจพบ</h2>
-            <div style="flex: 1; overflow-y: auto;"> <!-- เปลี่ยนให้ div ใช้พื้นที่เต็ม -->
+            <div style="flex: 1; overflow-y: auto;">
                 <table id="faceList">
                     <thead>
                         <tr>
@@ -185,8 +185,6 @@
         const socket = io();
     
         const alertText = document.getElementById('alertText');
-    
-        // ฟังก์ชันเพิ่มแถวใหม่ในตารางบันทึกใบหน้าที่ตรวจพบ
         function appendFaceToTable(name, timestamp, imagePath) {
             const tableBody = document.querySelector('#faceList tbody');
             const newRow = document.createElement('tr');
@@ -206,24 +204,21 @@
             tableBody.appendChild(newRow);
         }
     
-        // ฟังก์ชันสำหรับเพิ่มข้อความบันทึกการตรวจจับในส่วนบันทึกผล
         function appendLogMessage(message) {
             const logDiv = document.getElementById('logMessages');
             const msgDiv = document.createElement('div');
-            msgDiv.innerHTML = message; // แสดง HTML
-            msgDiv.className = 'message'; // เพิ่มคลาส
+            msgDiv.innerHTML = message; 
+            msgDiv.className = 'message'; 
             logDiv.appendChild(msgDiv);
-            logDiv.scrollTop = logDiv.scrollHeight; // เลื่อนลงเพื่อให้เห็นข้อความล่าสุด
+            logDiv.scrollTop = logDiv.scrollHeight; 
         }
     
         socket.on('alert', function(data) {
             const timestamp = new Date().toLocaleString('th-TH');
             
-            // กำหนดข้อความการแจ้งเตือนและบันทึก
             let alertMessage = '';
             let logMessage = '';
     
-            // ตรวจสอบว่าใบหน้าที่ตรวจพบตรงกับใคร
             if (data.name === 'Worramate') {
                 alertMessage = `ตรวจจับพบ Worramate เวลา: ${timestamp}`;
                 logMessage = `ตรวจจับพบ: Worramate เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
@@ -238,21 +233,21 @@
                 logMessage = `ตรวจจับพบ: บุคคลอื่นที่ไม่รู้จัก เวลา: ${timestamp} <img src="${data.image_path}" style="width: 50px; height: auto;"/>`;
             }
     
-            // เพิ่มข้อความบันทึกในส่วนบันทึกผล
+            
             appendLogMessage(logMessage);
             
-            // แสดงข้อความการตรวจจับบนวิดีโอ
+            
             alertText.innerText = alertMessage;
             alertText.style.display = 'block';
             setTimeout(() => {
                 alertText.style.display = 'none';
             }, 3000);
     
-            // เพิ่มข้อมูลใบหน้าที่ตรวจพบลงในตาราง
+           
             appendFaceToTable(data.name, timestamp, data.image_path);
         });
     
-        // ฟังก์ชันส่งข้อความจากผู้ใช้ไปยังแชทบอท
+        
         document.getElementById('sendButton').onclick = function() {
             const userInput = document.getElementById('userInput').value;
             if (userInput) {
@@ -260,8 +255,8 @@
                 msgDiv.className = 'message user';
                 msgDiv.innerText = userInput;
                 document.getElementById('chatMessages').appendChild(msgDiv);
-                document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight; // เลื่อนลงเพื่อให้เห็นข้อความล่าสุด
-                document.getElementById('userInput').value = ''; // เคลียร์ input
+                document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight; 
+                document.getElementById('userInput').value = ''; 
             }
         };
     </script>    
