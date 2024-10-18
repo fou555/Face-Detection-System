@@ -10,39 +10,32 @@ import google.generativeai as genai
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-# ตั้งค่า API Key สำหรับ Gemini
 GEMINI_API_KEY = 'AIzaSyDMPBWVBNZOHxsF2IlbjTLREHEx6LR2NZ4'
 genai.configure(api_key=GEMINI_API_KEY)
 
-# ตรวจสอบว่ามีไฟล์โมเดลอยู่หรือไม่
 model_path = r'C:\Users\User\Downloads\Face Recognition System\keras_model.h5'
 if os.path.exists(model_path):
     model = load_model(model_path)
 else:
     raise FileNotFoundError(f"Model file '{model_path}' not found.")
 
-# ตรวจสอบว่ามีไฟล์ Haarcascade อยู่หรือไม่
 face_cascade_path = r'C:\Users\User\Downloads\Face Recognition System\haarcascade_frontalface_default.xml'
 if os.path.exists(face_cascade_path):
     facedetect = cv2.CascadeClassifier(face_cascade_path)
 else:
     raise FileNotFoundError(f"Face cascade file '{face_cascade_path}' not found.")
 
-# สร้างไดเรกทอรีเพื่อเก็บใบหน้าที่ตรวจพบ
 detected_faces_dir = r'C:\Users\User\Downloads\Face Recognition System\detected_faces' 
 if not os.path.exists(detected_faces_dir):
     os.makedirs(detected_faces_dir)
 
-already_alerted_faces = set()  # ใช้เก็บชื่อใบหน้าที่เตือนแล้ว
+already_alerted_faces = set()  
 detected_faces_data = []
 
-# กำหนด threshold สำหรับการคาดการณ์
 threshold = 0.5
 
-# รายชื่อบุคคลที่รู้จัก (ควรกำหนดให้ตรงตามโมเดลของคุณ)
 known_persons = ["Worramate", "Nakarin", "Apisada"]
 
-# ฟังก์ชันการดึงเฟรมจากกล้อง
 def generate_frames():
     cap = cv2.VideoCapture(0)
     
@@ -85,7 +78,6 @@ def generate_frames():
                 face_image_path = os.path.join(detected_faces_dir, f'{predicted_name}_{timestamp}.jpg')
                 cv2.imwrite(face_image_path, face_roi)
 
-                # ตรวจสอบชื่อที่ตรวจพบ และส่งสัญญาณเตือนตามบุคคลที่ตรวจพบ
                 if predicted_name == "บุคคลไม่รู้จัก":
                     socketio.emit('alert', {
                         'name': 'ผู้บุกรุก',
@@ -125,7 +117,6 @@ def index():
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# ฟังก์ชันการใช้งานแชทบอทผ่าน Gemini API
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json.get('message', '')
