@@ -15,21 +15,21 @@ GEMINI_API_KEY = 'AIzaSyDMPBWVBNZOHxsF2IlbjTLREHEx6LR2NZ4'
 genai.configure(api_key=GEMINI_API_KEY)
 
 # ตรวจสอบว่ามีไฟล์โมเดลอยู่หรือไม่
-model_path = r'C:\Users\kpaop\Downloads\Face Recognition System\Face Recognition System\keras_model.h5'
+model_path = r'C:\Users\User\Downloads\Face Recognition System\keras_model.h5'
 if os.path.exists(model_path):
     model = load_model(model_path)
 else:
     raise FileNotFoundError(f"Model file '{model_path}' not found.")
 
 # ตรวจสอบว่ามีไฟล์ Haarcascade อยู่หรือไม่
-face_cascade_path = r'C:\Users\kpaop\Downloads\Face Recognition System\Face Recognition System\haarcascade_frontalface_default.xml'
+face_cascade_path = r'C:\Users\User\Downloads\Face Recognition System\haarcascade_frontalface_default.xml'
 if os.path.exists(face_cascade_path):
     facedetect = cv2.CascadeClassifier(face_cascade_path)
 else:
     raise FileNotFoundError(f"Face cascade file '{face_cascade_path}' not found.")
 
 # สร้างไดเรกทอรีเพื่อเก็บใบหน้าที่ตรวจพบ
-detected_faces_dir = r'C:\path\to\your\folder\detected_faces'  # เปลี่ยนที่อยู่โฟลเดอร์ที่ต้องการเก็บ
+detected_faces_dir = r'C:\Users\User\Downloads\Face Recognition System\detected_faces' 
 if not os.path.exists(detected_faces_dir):
     os.makedirs(detected_faces_dir)
 
